@@ -10,12 +10,14 @@ WORKDIR /app
 COPY ml/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
-# Copy training scripts and dataset (paths relative to repo root)
+# Copy training scripts
 COPY ml/train_baseline_logistic.py ml/finalize_churn_model.py ./
-COPY dataset/Client\ Data\ Set\ for\ Student\ Project\ Workbook.xlsx ./dataset.xlsx
+
+# Copy entire dataset directory (avoids filename space issues)
+COPY dataset/ ./dataset/
 
 # Train model and generate artifacts
-RUN TRAIN_DATA_PATH=/app/dataset.xlsx python train_baseline_logistic.py && \
+RUN TRAIN_DATA_PATH=/app/dataset/Client\ Data\ Set\ for\ Student\ Project\ Workbook.xlsx python train_baseline_logistic.py && \
     python finalize_churn_model.py
 
 # ============================================================
