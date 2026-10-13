@@ -1,0 +1,17 @@
+{
+  "model": "GradientBoostingClassifier",
+  "target_class": "Yes",
+  "targeting_capacity": 0.3,
+  "selection_method": "rank predicted churn probabilities; select top 30%",
+  "validation_rows": 440,
+  "validation_customers_targeted": 132,
+  "best_training_cv_average_precision": 0.4096843779849421,
+  "best_parameters": {
+    "classifier__learning_rate": 0.03,
+    "classifier__max_depth": 1,
+    "classifier__min_samples_leaf": 20,
+    "classifier__n_estimators": 100
+  },
+  "random_state": 42,
+  "split": "stratified 60/20/20"
+}

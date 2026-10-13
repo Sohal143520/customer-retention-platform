@@ -1,0 +1,7 @@
+{
+  "screeningThreshold": 0.4,
+  "highRiskKpiThreshold": 0.5,
+  "positiveClass": "Yes",
+  "model": "balanced_logistic_final.joblib",
+  "split": "stratified 80/20, random_state=42"
+}

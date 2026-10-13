@@ -1,0 +1,38 @@
+# Build artifacts
+target/
+frontend/dist/
+frontend/node_modules/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# ML artifacts
+ml/*.joblib
+ml/__pycache__/
+ml/*.pyc
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.sts4-cache/
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Docker
+.docker/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# HELP.md (generated)
+HELP.md
