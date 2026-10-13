@@ -18,7 +18,7 @@ COPY dataset/ ./dataset/
 
 # Train model and generate artifacts
 RUN TRAIN_DATA_PATH=/app/dataset/Client\ Data\ Set\ for\ Student\ Project\ Workbook.xlsx python train_baseline_logistic.py && \
-    python finalize_churn_model.py
+    TRAIN_DATA_PATH=/app/dataset/Client\ Data\ Set\ for\ Student\ Project\ Workbook.xlsx python finalize_churn_model.py
 
 # ============================================================
 # Runtime stage

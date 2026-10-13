@@ -21,8 +21,9 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 import os
 BASE_DIR = Path(__file__).resolve().parent
-# Allow override via env var for containerized training
-DATA_PATH = Path(os.getenv("TRAIN_DATA_PATH", BASE_DIR.parent / "dataset" / "Client Data Set for Student Project Workbook.xlsx"))
+# Allow override via env var for containerized training (same as train_baseline_logistic.py)
+PROJECT_DIR = BASE_DIR.parent
+DATA_PATH = Path(os.getenv("TRAIN_DATA_PATH", PROJECT_DIR / "dataset" / "Client Data Set for Student Project Workbook.xlsx"))
 MODEL_PATH = BASE_DIR / "gradient_boosting_final.joblib"
 POLICY_PATH = BASE_DIR / "targeting_policy.json"
 
