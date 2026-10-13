@@ -24,9 +24,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
+import os
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
-DATA_PATH = PROJECT_DIR / "dataset" / "Client Data Set for Student Project Workbook.xlsx"
+# Allow override via env var for containerized training
+DATA_PATH = Path(os.getenv("TRAIN_DATA_PATH", PROJECT_DIR / "dataset" / "Client Data Set for Student Project Workbook.xlsx"))
 MODEL_PATH = BASE_DIR / "balanced_logistic_final.joblib"
 POLICY_PATH = BASE_DIR / "screening_threshold.json"
 METRICS_PATH = BASE_DIR / "baseline_holdout_metrics.json"

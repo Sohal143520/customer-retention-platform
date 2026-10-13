@@ -19,11 +19,10 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+import os
 BASE_DIR = Path(__file__).resolve().parent
-DATA_PATH = (
-    BASE_DIR.parent / "dataset"
-    / "Client Data Set for Student Project Workbook.xlsx"
-)
+# Allow override via env var for containerized training
+DATA_PATH = Path(os.getenv("TRAIN_DATA_PATH", BASE_DIR.parent / "dataset" / "Client Data Set for Student Project Workbook.xlsx"))
 MODEL_PATH = BASE_DIR / "gradient_boosting_final.joblib"
 POLICY_PATH = BASE_DIR / "targeting_policy.json"
 

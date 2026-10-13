@@ -1,0 +1,109 @@
+# Render deployment configuration for Customer Retention Platform
+# Deploy with: render deploy --config render.yaml
+# Or connect repo at dashboard.render.com and select "Render.yaml"
+
+services:
+  # ============================================================
+  # PostgreSQL Database (Managed)
+  # ============================================================
+  - type: pserv
+    name: customer-retention-db
+    plan: starter  # Free tier available
+    region: oregon  # Change to your preferred region
+    postgresMajorVersion: 16
+    databaseName: customer_retention
+    user: retention_app
+    # Password auto-generated; available as DATABASE_URL env var
+
+  # ============================================================
+  # Backend API (Spring Boot)
+  # ============================================================
+  - type: web
+    name: customer-retention-backend
+    plan: starter  # Free tier: 512 MB RAM, spins down after inactivity
+    region: oregon
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: customer-retention-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: customer-retention-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: customer-retention-db
+          property: password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        generateValue: true  # Auto-generate secure secret
+      - key: ML_SERVICE_URL
+        value: https://customer-retention-ml.onrender.com
+      - key: SERVER_PORT
+        value: "8080"
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+
+  # ============================================================
+  # ML Inference Service (FastAPI)
+  # ============================================================
+  - type: web
+    name: customer-retention-ml
+    plan: starter
+    region: oregon
+    runtime: docker
+    dockerfilePath: ./ml/Dockerfile
+    dockerContext: ./ml
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PORT
+        value: "8000"
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # ============================================================
+  # Frontend (React + Nginx Static Site)
+  # ============================================================
+  - type: web
+    name: customer-retention-frontend
+    plan: starter
+    region: oregon
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://customer-retention-backend.onrender.com
+    healthCheckPath: /
+    autoDeploy: true
+
+# ============================================================
+# Notes:
+# ============================================================
+# 1. Model artifacts (*.joblib) are in .gitignore.
+#    Options:
+#    a) Add to Git LFS: git lfs track "ml/*.joblib" && git add ml/*.joblib
+#    b) Build during deploy (add training step to ML Dockerfile)
+#    c) Download from external storage at container start
+#
+# 2. Free tier services spin down after 15 min inactivity.
+#    First request after spin-down takes ~30-60s to cold-start.
+#
+# 3. For production, upgrade to paid plans for:
+#    - Always-on services
+#    - More RAM/CPU
+#    - Persistent disks
+#    - Custom domains
+#
+# 4. After first deploy, note the actual URLs and update:
+#    - ML_SERVICE_URL in backend
+#    - VITE_API_BASE_URL in frontend
+#    (Render provides predictable URLs: <service-name>.onrender.com)
