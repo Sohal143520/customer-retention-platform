@@ -1,11 +1,40 @@
+# Git & IDE
 .git
 .idea
 .vscode
+
+# Environment & secrets
 .env
-target
-frontend/node_modules
-frontend/dist
-ml/**
-**/__pycache__
+.env.local
+.env.*.local
+
+# Build artifacts
+target/
+frontend/node_modules/
+frontend/dist/
+
+# ML artifacts (but NOT source files - needed for Docker build)
+ml/*.joblib
+ml/__pycache__/
+ml/*.pyc
+
+# Python
+**/__pycache__/
 **/*.py[cod]
 **/.venv
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Docker
+.docker/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated
+HELP.md
