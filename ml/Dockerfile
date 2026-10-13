@@ -31,10 +31,12 @@ WORKDIR /app
 COPY ml/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
-# Copy trained artifacts from trainer stage
+# Copy trained artifacts from trainer stage (only files that actually exist)
 COPY --from=trainer /app/balanced_logistic_final.joblib ./
 COPY --from=trainer /app/screening_threshold.json ./
-COPY --from=trainer /app/threshold.json ./
+COPY --from=trainer /app/baseline_holdout_metrics.json ./
+COPY --from=trainer /app/gradient_boosting_final.joblib ./
+COPY --from=trainer /app/targeting_policy.json ./
 
 # Copy application code
 COPY ml/prediction_api.py ./
