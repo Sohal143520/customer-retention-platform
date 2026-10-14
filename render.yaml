@@ -9,7 +9,7 @@ services:
   - type: pserv
     name: customer-retention-db
     plan: starter  # Free tier available
-    region: oregon  # Change to your preferred region
+    region: singapore
     postgresMajorVersion: 16
     databaseName: customer_retention
     user: retention_app
@@ -45,7 +45,7 @@ services:
       - key: JWT_SECRET
         # Set manually in Render Dashboard → Environment → JWT_SECRET
         # Generate with: openssl rand -base64 32
-      - key: ML_SERVICE_URL
+      - key: PREDICTION_API_URL
         value: https://customer-retention-ml.onrender.com
       - key: SERVER_PORT
         value: "8080"
@@ -58,7 +58,7 @@ services:
   - type: web
     name: customer-retention-ml
     plan: starter
-    region: oregon
+    region: singapore
     runtime: docker
     dockerfilePath: ./ml/Dockerfile
     dockerContext: ./ml
@@ -105,6 +105,6 @@ services:
 #    - Custom domains
 #
 # 4. After first deploy, note the actual URLs and update:
-#    - ML_SERVICE_URL in backend
+#    - PREDICTION_API_URL in backend
 #    - VITE_API_BASE_URL in frontend
 #    (Render provides predictable URLs: <service-name>.onrender.com)
