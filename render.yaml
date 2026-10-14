@@ -19,9 +19,9 @@ services:
   # Backend API (Spring Boot)
   # ============================================================
   - type: web
-    name: customer-retention-backend
+    name: customer-retention-platform
     plan: starter  # Free tier: 512 MB RAM, spins down after inactivity
-    region: oregon
+    region: singapore
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -43,7 +43,8 @@ services:
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
       - key: JWT_SECRET
-        generateValue: true  # Auto-generate secure secret
+        # Set manually in Render Dashboard → Environment → JWT_SECRET
+        # Generate with: openssl rand -base64 32
       - key: ML_SERVICE_URL
         value: https://customer-retention-ml.onrender.com
       - key: SERVER_PORT
@@ -75,13 +76,13 @@ services:
   - type: web
     name: customer-retention-frontend
     plan: starter
-    region: oregon
+    region: singapore
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://customer-retention-backend.onrender.com
+        value: https://customer-retention-platform.onrender.com
     healthCheckPath: /
     autoDeploy: true
 
