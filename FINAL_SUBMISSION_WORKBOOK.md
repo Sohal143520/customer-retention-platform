@@ -2,7 +2,7 @@
 # AI-Powered Customer Intelligence and Retention Platform
 **Project ID:** BCA-S6-MAJOR-AI-001  
 **Program:** BCA | Semester 6 | Major Project  
-**Date:** October 13, 2026
+**Date:** October 14, 2026
 
 ---
 
@@ -479,20 +479,43 @@ EXPOSE 80
 | **Persistent Data** | PostgreSQL volume: customer tables, prediction scores, retention actions, audit logs, baseline segments |
 
 ### Question 3: Scalability, Secrets, Monitoring
-
+ 
 | Concern | Approach |
 |---------|----------|
 | **Horizontal Scalability** | Backend API & ML service as stateless containers behind ALB; autoscaling on CPU/request concurrency |
 | **Secrets Management** | Runtime injection via AWS Secrets Manager / HashiCorp Vault; `.env` only for local dev |
 | **Telemetry & Monitoring** | Prometheus + Grafana: API latency, HTTP status codes, container health; model drift via input feature distribution logging & flagged churn rate tracking |
 | **Database** | Read replicas for query scaling; connection pooling (HikariCP); migration via Flyway/Liquibase |
-
+ 
+### Cloud Deployment Status (Render)
+ 
+**All services live as of October 14, 2026:**
+ 
+| Service | URL | Region | Status |
+|---|---|---|---|
+| Frontend (React + Nginx) | https://customer-retention-frontend.onrender.com | Singapore | ✅ Live |
+| Backend (Spring Boot 3.5.6) | https://customer-retention-platform.onrender.com | Singapore | ✅ Live |
+| ML Inference (FastAPI) | https://customer-retention-ml.onrender.com | Singapore | ✅ Live |
+| PostgreSQL 18 (Managed) | Internal (Docker network) | Singapore | ✅ Live |
+ 
+**Key Configuration Fixes Applied During Deployment:**
+1. **`PREDICTION_API_URL` environment variable** — Set to `https://customer-retention-ml.onrender.com` (was defaulting to `http://127.0.0.1:8000`)
+2. **RestClient timeouts** — Increased to 10s connect / 30s read for reliable ML service calls
+3. **DEBUG logging** — Enabled for `com.retention.platform.customer_retention_platform.service` to diagnose prediction failures
+4. **Regions aligned** — All services deployed to Singapore for low-latency intra-service communication
+5. **JWT_SECRET** — Fixed value configured in Render Dashboard (not auto-generated) to persist tokens across deploys
+ 
+**Verified Endpoints (Production):**
+- `GET /api/v1/auth/role` → 200 OK (role: ADMIN)
+- `POST /api/v1/predictions/churn` → 200 OK (single prediction with model explanation)
+- `POST /api/v1/predictions/bulk` → 200 OK (2,200 customers scored, 660 targeted at 30% capacity)
+ 
 ---
 
 ## Activity 11: Testing & Validation
 
 ### Question 1 & 2: Functional Test Results
-
+ 
 | Test ID | Test Case | Expected Result | Actual Result | Status |
 |---------|-----------|-----------------|---------------|--------|
 | **TC-01** | Valid admin login | JWT token returned; dashboard loads | 200 OK; token issued; React dashboard renders | **PASS** |
@@ -503,6 +526,9 @@ EXPOSE 80
 | **TC-06** | System KPI validation | Churn rate = 29.23% (643/2200) | 200 OK; `churnRate: 29.23` | **PASS** |
 | **TC-07** | JWT token expiry | 401 after 30 min; re-login required | 401 on expired token; login required | **PASS** |
 | **TC-08** | Role-based access control | OPERATIONS cannot assign actions; AGENT cannot upload | 403 Forbidden for unauthorized roles | **PASS** |
+| **TC-09** | **Cloud: Single prediction endpoint** | `POST /api/v1/predictions/churn` → 200 OK with explanation | 200 OK; probability 0.4922, risk "Medium", contributions returned | **PASS** |
+| **TC-10** | **Cloud: Bulk prediction endpoint** | `POST /api/v1/predictions/bulk` → 200 OK, 2,200 scored | 200 OK; 2,200 customers, 660 targeted (30% capacity) | **PASS** |
+| **TC-11** | **Cloud: Auth role endpoint** | `GET /api/v1/auth/role` → 200 OK with ADMIN role | 200 OK; `{username:"Admin", role:"ADMIN"}` | **PASS** |
 
 ### Question 3: Defects & Limitations
 
@@ -554,11 +580,13 @@ Dataset lacks longitudinal timestamped interaction logs (daily clickstreams). Pr
 | Evidence Category | Submission Details / Resource Location |
 |-------------------|----------------------------------------|
 | **Source Code Repository** | `customer-retention-platform/` (includes `/src` Spring Boot, `/frontend` React, `/ml` FastAPI, `docker-compose.yml`, `Dockerfile`s) |
-| **Working Prototype** | Local: `docker compose up --build -d` → Dashboard at `http://localhost:8081`; API at `http://localhost:8080`; ML at `http://localhost:8000` |
+| **Working Prototype (Local)** | `docker compose up --build -d` → Dashboard at `http://localhost:8081`; API at `http://localhost:8080`; ML at `http://localhost:8000` |
+| **Working Prototype (Cloud — Render)** | Dashboard: `https://customer-retention-frontend.onrender.com`; API: `https://customer-retention-platform.onrender.com`; ML: `https://customer-retention-ml.onrender.com` |
 | **Architecture Diagram** | Multi-tier containerized data-flow diagram (included in project docs) |
 | **Model Evaluation Output** | `ml/baseline_holdout_metrics.json`, confusion matrix, ROC-AUC curve |
 | **Requirements & Test Traceability** | `src/test/java/...` (Spring Boot tests), `ml/test_prediction_api.py`, `frontend/src/dashboardMetrics.test.js` |
 | **Packaging Evidence** | `docker-compose.yml`, `Dockerfile`s, container build logs verified via `docker compose ps` |
+| **Cloud Deployment Config** | `render.yaml` (4-service Render deployment) |
 
 ---
 
