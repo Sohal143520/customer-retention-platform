@@ -14,6 +14,8 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,6 +28,7 @@ import java.time.Instant;
 @Service
 public class PredictionService {
 
+    private static final Logger log = LoggerFactory.getLogger(PredictionService.class);
     private static final double TARGETING_CAPACITY = 0.30;
 
     private final RestClient restClient;
@@ -49,17 +52,27 @@ public class PredictionService {
 
         this.customerRepository = customerRepository;
         this.retentionActionRepository = retentionActionRepository;
+        
+        log.info("PredictionService initialized with ML API URL: {}", predictionApiUrl);
     }
 
     // Existing single-customer prediction
     public PredictionResponse predict(PredictionRequest request) {
 
-        return restClient.post()
-                .uri("/predict")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .retrieve()
-                .body(PredictionResponse.class);
+        log.debug("Calling ML service at /predict for single customer");
+        try {
+            PredictionResponse response = restClient.post()
+                    .uri("/predict")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(PredictionResponse.class);
+            log.debug("ML service responded successfully");
+            return response;
+        } catch (Exception e) {
+            log.error("ML service call failed: {}", e.getMessage(), e);
+            throw new IllegalStateException("Prediction service unavailable: " + e.getMessage(), e);
+        }
     }
 
     // Bulk prediction and top-30% targeting
@@ -86,12 +99,21 @@ public class PredictionService {
         List<PredictionRequest> requests = customers.stream()
                 .map(this::toPredictionRequest)
                 .toList();
-        List<PredictionResponse> predictions = restClient.post()
-                .uri("/predict/bulk")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Map.of("customers", requests))
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+        
+        log.debug("Calling ML service at /predict/bulk for {} customers", customers.size());
+        List<PredictionResponse> predictions;
+        try {
+            predictions = restClient.post()
+                    .uri("/predict/bulk")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("customers", requests))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {});
+            log.debug("ML service bulk responded successfully with {} predictions", predictions != null ? predictions.size() : 0);
+        } catch (Exception e) {
+            log.error("ML service bulk call failed: {}", e.getMessage(), e);
+            throw new IllegalStateException("Prediction service unavailable: " + e.getMessage(), e);
+        }
 
         if (predictions == null || predictions.size() != customers.size()) {
             throw new IllegalStateException(
