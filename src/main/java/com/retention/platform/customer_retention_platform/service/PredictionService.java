@@ -38,8 +38,12 @@ public class PredictionService {
             CustomerRepository customerRepository,
             RetentionActionRepository retentionActionRepository) {
 
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000); // 10s connect
+        factory.setReadTimeout(30000);    // 30s read
+
         this.restClient = RestClient.builder()
-                .requestFactory(new SimpleClientHttpRequestFactory())
+                .requestFactory(factory)
                 .baseUrl(predictionApiUrl)
                 .build();
 
