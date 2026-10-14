@@ -7,8 +7,9 @@
 - **Student Name:** Harminder Singh Sohal
 - **Enrolment Number:** [Enter University Enrolment Number]
 - **Program / Batch:** BCA / 2023–2026 (Semester 6)
-- **Submission Date:** October 13, 2026
+- **Submission Date:** October 14, 2026
 - **Technology Stack:** Spring Boot 3.5 (Java 21) | React 19 + Bootstrap 5 | FastAPI (Python 3.13) | Scikit-Learn | PostgreSQL 18 | Docker Compose
+- **Cloud Deployment:** Render (Singapore region) — 4 services: Frontend (Nginx), Backend (Spring Boot), ML (FastAPI), PostgreSQL 18
 
 ---
 
@@ -403,6 +404,14 @@ volumes:
 - **Secrets Management:** Credentials (`DB_PASSWORD`, `JWT_SECRET`) are excluded from Git and image build contexts via `.dockerignore` and injected strictly via environment variables.
 - **Telemetry & Health Monitoring:** Spring Boot Actuator (`/actuator/health`) provides container liveness probes without exposing internal service details (`management.endpoint.health.show-details=never`).
 
+### Cloud Deployment Lessons Learned
+1. **Environment Variable Names Must Match:** Spring Boot's `@Value("${prediction.api.url}")` requires `PREDICTION_API_URL` (uppercase with underscores), not `ML_SERVICE_URL`.
+2. **Default Values Hide Misconfiguration:** The fallback `http://127.0.0.1:8000` masked the missing env var until production calls timed out.
+3. **RestClient Timeouts Critical:** Default timeouts caused 504s on cold ML service starts; explicit 10s/30s connect/read timeouts resolved this.
+4. **JWT_SECRET Must Be Fixed:** Render's auto-generated secrets rotate on each deploy, invalidating all user tokens. Set a fixed value in Dashboard.
+5. **Region Alignment Reduces Latency:** Co-locating all services in Singapore eliminated cross-region database/ML latency.
+6. **DEBUG Logging Essential:** Spring Boot defaults to INFO; DEBUG level for application packages revealed the root cause (ML URL misconfiguration) immediately.
+
 ---
 
 ## Activity 11: Testing & Validation
@@ -457,15 +466,42 @@ volumes:
 
 ---
 
+## Cloud Deployment Status (Render)
+
+**All services live as of October 14, 2026:**
+
+| Service | URL | Region | Status |
+|---|---|---|---|
+| Frontend (React + Nginx) | https://customer-retention-frontend.onrender.com | Singapore | ✅ Live |
+| Backend (Spring Boot 3.5.6) | https://customer-retention-platform.onrender.com | Singapore | ✅ Live |
+| ML Inference (FastAPI) | https://customer-retention-ml.onrender.com | Singapore | ✅ Live |
+| PostgreSQL 18 (Managed) | Internal (Docker network) | Singapore | ✅ Live |
+
+**Key Configuration Fixes Applied During Deployment:**
+1. **`PREDICTION_API_URL` environment variable** — Set to `https://customer-retention-ml.onrender.com` (was defaulting to `http://127.0.0.1:8000`)
+2. **RestClient timeouts** — Increased to 10s connect / 30s read for reliable ML service calls
+3. **DEBUG logging** — Enabled for `com.retention.platform.customer_retention_platform.service` to diagnose prediction failures
+4. **Regions aligned** — All services deployed to Singapore for low-latency intra-service communication
+5. **JWT_SECRET** — Fixed value configured in Render Dashboard (not auto-generated) to persist tokens across deploys
+
+**Verified Endpoints (Production):**
+- `GET /api/v1/auth/role` → 200 OK (role: ADMIN)
+- `POST /api/v1/predictions/churn` → 200 OK (single prediction with model explanation)
+- `POST /api/v1/predictions/bulk` → 200 OK (2,200 customers scored, 660 targeted at 30% capacity)
+
+---
+
 ## Final Project Evidence Table
 
 | Evidence Category | Submission Details / Resource Location |
 |---|---|
 | **Source Code Repository** | Root project repository (Spring Boot `/src`, React `/frontend`, FastAPI `/ml`, `/dataset`) |
-| **Working Prototype** | React Dashboard running on `http://localhost:8081`, Spring API on `http://localhost:8080` |
+| **Working Prototype (Local)** | React Dashboard on `http://localhost:8081`, Spring API on `http://localhost:8080` |
+| **Working Prototype (Cloud)** | Frontend: `https://customer-retention-frontend.onrender.com` |
 | **Model Artifacts** | `ml/balanced_logistic_final.joblib`, `ml/screening_threshold.json`, `ml/baseline_holdout_metrics.json` |
 | **Test Suites** | `CustomerRetentionPlatformApplicationTests.java`, `dashboardMetrics.test.js`, `test_prediction_api.py` |
 | **Container Packaging** | Root `docker-compose.yml`, `Dockerfile`, `frontend/Dockerfile`, `ml/Dockerfile` |
+| **Cloud Config** | `render.yaml` (4-service Render deployment) |
 
 ---
 
