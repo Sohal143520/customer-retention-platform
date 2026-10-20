@@ -1931,12 +1931,44 @@ export default function App() {
     return () => { cancelled = true }
   }, [token, role])
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  async function fetchWithRetry(input, init, maxAttempts = 3) {
+    let lastError
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const response = await fetch(input, init)
+        // Retry on server-side cold-start / unavailable errors (502, 503, 504).
+        // Do not retry on 401/403/404 — those are real failures.
+        if (response.status >= 500 && attempt < maxAttempts) {
+          lastError = new Error(
+            `Service waking up (HTTP ${response.status}). Retrying…`,
+          )
+          await sleep(1500 * attempt)
+          continue
+        }
+        return response
+      } catch (err) {
+        // Retry network errors too (service still spinning up).
+        if (attempt < maxAttempts) {
+          lastError = err
+          await sleep(1500 * attempt)
+          continue
+        }
+        throw err
+      }
+    }
+    throw lastError
+  }
+
   async function handleLogin(username, password) {
     setLoginLoading(true)
     setLoginError('')
 
     try {
-      const response = await fetch(LOGIN_URL, {
+      const response = await fetchWithRetry(LOGIN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

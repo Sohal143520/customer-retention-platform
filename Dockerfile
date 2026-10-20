@@ -12,4 +12,4 @@ RUN apt-get update \
 COPY --from=build /workspace/target/*.jar app.jar
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=6 CMD curl --fail --silent http://127.0.0.1:8080/actuator/health || exit 1
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-jar", "/app/app.jar"]
