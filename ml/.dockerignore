@@ -1,6 +1,52 @@
-**
-!Dockerfile
-!requirements.txt
-!prediction_api.py
-!balanced_logistic_final.joblib
-!screening_threshold.json
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+# Model artifacts (should be committed via Git LFS)
+*.joblib
+*.json
+
+# Dataset (large files)
+dataset/
+
+# Training scripts (not needed in runtime)
+train_*.py
+finalize_*.py
+tune_*.py
+try_*.py
+compare_*.py
+diagnose_*.py
+analyze_*.py
+check_*.py
+test_*.py
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+*.log

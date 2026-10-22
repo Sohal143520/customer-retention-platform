@@ -1,40 +1,56 @@
-# Git & IDE
+# Git
 .git
-.idea
-.vscode
-
-# Environment & secrets
-.env
-.env.local
-.env.*.local
-
-# Build artifacts
-target/
-frontend/node_modules/
-frontend/dist/
-
-# ML artifacts (but NOT source files - needed for Docker build)
-ml/*.joblib
-ml/__pycache__/
-ml/*.pyc
-
-# Python
-**/__pycache__/
-**/*.py[cod]
-**/.venv
+.gitignore
 
 # Maven
-.mvn/wrapper/maven-wrapper.jar
+target/
+*.jar
+*.war
+*.ear
+mvnw
+mvnw.cmd
+.mvn/
 
-# Docker
-.docker/
-
-# Logs
-*.log
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Generated
-HELP.md
+# Logs
+*.log
+logs/
+
+# Frontend (built separately)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ML (built separately)
+ml/__pycache__/
+ml/*.pyc
+ml/*.joblib
+ml/*.json
+ml/dataset/
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Test reports
+target/surefire-reports/
+target/failsafe-reports/
+
+# Environment
+.env
+.env.*

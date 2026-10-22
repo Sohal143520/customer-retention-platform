@@ -1935,26 +1935,30 @@ export default function App() {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
-  async function fetchWithRetry(input, init, maxAttempts = 3) {
+  async function fetchWithRetry(input, init, maxAttempts = 5) {
     let lastError
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await fetch(input, init)
-        // Retry on server-side cold-start / unavailable errors (502, 503, 504).
+        // Retry on: 429 (rate limit), 502/503/504 (cold start/unavailable)
         // Do not retry on 401/403/404 — those are real failures.
-        if (response.status >= 500 && attempt < maxAttempts) {
+        const retryStatus = [429, 502, 503, 504]
+        if (retryStatus.includes(response.status) && attempt < maxAttempts) {
+          // Exponential backoff with jitter: 2s, 4s, 8s, 16s
+          const delay = Math.min(2000 * Math.pow(2, attempt - 1), 30000) + Math.random() * 1000
           lastError = new Error(
-            `Service waking up (HTTP ${response.status}). Retrying…`,
+            `Service ${response.status === 429 ? 'rate limited' : 'waking up'} (HTTP ${response.status}). Retrying in ${Math.round(delay/1000)}s…`,
           )
-          await sleep(1500 * attempt)
+          await sleep(delay)
           continue
         }
         return response
       } catch (err) {
-        // Retry network errors too (service still spinning up).
+        // Retry network errors too (service still spinning up / DNS issues).
         if (attempt < maxAttempts) {
           lastError = err
-          await sleep(1500 * attempt)
+          const delay = Math.min(2000 * Math.pow(2, attempt - 1), 30000) + Math.random() * 1000
+          await sleep(delay)
           continue
         }
         throw err
@@ -1987,6 +1991,17 @@ export default function App() {
       }
 
       if (!response.ok) {
+        // Special handling for common Render free tier issues
+        if (response.status === 429) {
+          throw new Error(
+            'Too many login attempts. Render free tier rate limit hit. Please wait 30–60 seconds and try again.'
+          )
+        }
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+          throw new Error(
+            'Backend service is starting up (cold start). Please wait 30–60 seconds and try again.'
+          )
+        }
         throw new Error(
           typeof result === 'object'
             ? result.message ||

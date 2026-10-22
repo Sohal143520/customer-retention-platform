@@ -8,10 +8,14 @@ frontend/node_modules/
 .env.local
 .env.*.local
 
-# ML artifacts
-ml/*.joblib
+# ML artifacts - allow trained models, ignore cache
 ml/__pycache__/
 ml/*.pyc
+!ml/balanced_logistic_final.joblib
+!ml/screening_threshold.json
+!ml/baseline_holdout_metrics.json
+!ml/gradient_boosting_final.joblib
+!ml/targeting_policy.json
 
 # IDE
 .idea/

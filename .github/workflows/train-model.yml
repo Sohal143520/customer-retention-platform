@@ -1,0 +1,56 @@
+name: Train & Commit ML Model Artifacts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ml/**'
+      - 'dataset/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ./ml
+        run: |
+          pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
+
+      - name: Train baseline logistic model
+        working-directory: ./ml
+        env:
+          TRAIN_DATA_PATH: ../dataset/Client Data Set for Student Project Workbook.xlsx
+        run: |
+          python train_baseline_logistic.py
+
+      - name: Finalize churn model (generate balanced model + threshold)
+        working-directory: ./ml
+        env:
+          TRAIN_DATA_PATH: ../dataset/Client Data Set for Student Project Workbook.xlsx
+        run: |
+          python finalize_churn_model.py
+
+      - name: Commit model artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ml/balanced_logistic_final.joblib ml/screening_threshold.json ml/baseline_holdout_metrics.json ml/gradient_boosting_final.joblib ml/targeting_policy.json
+          git diff --staged --quiet || git commit -m "chore(ml): update model artifacts [skip ci]"
+          git push

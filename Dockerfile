@@ -11,5 +11,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /workspace/target/*.jar app.jar
 EXPOSE 8080
-HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=6 CMD curl --fail --silent http://127.0.0.1:8080/actuator/health || exit 1
-ENTRYPOINT ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-jar", "/app/app.jar"]
+# Health check with longer timeout for cold starts
+HEALTHCHECK --interval=10s --timeout=10s --start-period=120s --retries=12 CMD curl --fail --silent http://127.0.0.1:8080/actuator/health || exit 1
+# JVM tuning for faster startup on Render free tier (512MB RAM)
+ENTRYPOINT ["java", "-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]

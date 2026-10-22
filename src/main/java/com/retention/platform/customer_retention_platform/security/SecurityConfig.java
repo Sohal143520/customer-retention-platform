@@ -63,8 +63,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        // Use patterns to support Render preview deployments
+        configuration.setAllowedOriginPatterns(List.of(
             "https://customer-retention-frontend.onrender.com",
+            "https://customer-retention-frontend-*.onrender.com",
             "http://localhost:5173",
             "http://localhost:8081"
         ));
