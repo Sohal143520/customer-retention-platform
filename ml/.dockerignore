@@ -6,9 +6,12 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# Model artifacts (should be committed via Git LFS)
-*.joblib
-*.json
+# Model artifacts - ALLOW these specific files (needed for build)
+!balanced_logistic_final.joblib
+!screening_threshold.json
+!baseline_holdout_metrics.json
+!gradient_boosting_final.joblib
+!targeting_policy.json
 
 # Dataset (large files)
 dataset/
