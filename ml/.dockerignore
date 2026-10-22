@@ -6,17 +6,6 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# Exclude all model artifacts and JSON files first
-*.joblib
-*.json
-
-# Then ALLOW specific files needed for build (negation patterns must come after)
-!balanced_logistic_final.joblib
-!screening_threshold.json
-!baseline_holdout_metrics.json
-!gradient_boosting_final.joblib
-!targeting_policy.json
-
 # Dataset (large files)
 dataset/
 
