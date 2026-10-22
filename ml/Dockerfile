@@ -29,3 +29,4 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=6 CMD pytho
 
 CMD ["uvicorn", "prediction_api:app", "--host", "0.0.0.0", "--port", "8000"]# Force rebuild 10/22/2026 23:13:15
 # force rebuild 10/22/2026 23:24:50
+# force rebuild 10/22/2026 23:28:45
