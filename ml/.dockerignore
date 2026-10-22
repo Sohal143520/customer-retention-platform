@@ -1,0 +1,47 @@
+# Only exclude cache and dataset - keep all model artifacts and source files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+dataset/
+
+# Training scripts
+train_*.py
+finalize_*.py
+tune_*.py
+try_*.py
+compare_*.py
+diagnose_*.py
+analyze_*.py
+check_*.py
+test_*.py
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+*.log
