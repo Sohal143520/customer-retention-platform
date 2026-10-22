@@ -34,18 +34,7 @@ frontend/.vite/
 # ML (built separately)
 ml/__pycache__/
 ml/*.pyc
-ml/*.joblib
-ml/*.json
 ml/dataset/
-
-# But ALLOW model artifacts and config files needed for ML service build
-!ml/balanced_logistic_final.joblib
-!ml/screening_threshold.json
-!ml/baseline_holdout_metrics.json
-!ml/gradient_boosting_final.joblib
-!ml/targeting_policy.json
-!ml/prediction_api.py
-!ml/requirements.txt
 
 # Docker
 docker-compose*.yml
