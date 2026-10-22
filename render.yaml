@@ -49,14 +49,12 @@ services:
         value: https://customer-retention-ml.onrender.com
       - key: SERVER_PORT
         value: "8080"
-      # Increase health check timeout for cold starts
-      - key: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
+      # Actuator health probe config (Spring Boot 3.x)
+      - key: MANAGEMENT.ENDPOINT.HEALTH.PROBES.ENABLED
         value: "true"
-      - key: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
+      - key: MANAGEMENT.ENDPOINT.HEALTH.SHOW-DETAILS
         value: "never"
     healthCheckPath: /actuator/health
-    # Increase health check timeout for Render free tier cold starts
-    healthCheckTimeout: 120
     autoDeploy: true
 
   # ============================================================
@@ -75,7 +73,6 @@ services:
       - key: PORT
         value: "8000"
     healthCheckPath: /health
-    healthCheckTimeout: 120
     autoDeploy: true
 
   # ============================================================
@@ -94,20 +91,18 @@ services:
       - key: BACKEND_URL
         value: https://customer-retention-platform.onrender.com
     healthCheckPath: /
-    healthCheckTimeout: 60
     autoDeploy: true
 
 # ============================================================
 # Notes:
 # ============================================================
-# 1. Model artifacts (*.joblib) are in .gitignore.
-#    Options:
-#    a) Add to Git LFS: git lfs track "ml/*.joblib" && git add ml/*.joblib
-#    b) Build during deploy (add training step to ML Dockerfile)
-#    c) Download from external storage at container start
+# 1. Model artifacts (*.joblib, *.json) are committed via Git LFS.
+#    They are built locally (or via GitHub Actions) and pushed to repo.
+#    ML Dockerfile copies pre-trained artifacts - no training at build time.
 #
 # 2. Free tier services spin down after 15 min inactivity.
 #    First request after spin-down takes ~30-60s to cold-start.
+#    Frontend retry logic handles 429/502/503/504 with exponential backoff.
 #
 # 3. For production, upgrade to paid plans for:
 #    - Always-on services
@@ -115,7 +110,12 @@ services:
 #    - Persistent disks
 #    - Custom domains
 #
-# 4. After first deploy, note the actual URLs and update:
+# 4. After first deploy, note the actual URLs and update if needed:
 #    - PREDICTION_API_URL in backend
-#    - VITE_API_BASE_URL in frontend
+#    - VITE_API_BASE_URL / BACKEND_URL in frontend
 #    (Render provides predictable URLs: <service-name>.onrender.com)
+#
+# 5. Required Environment Variables (set in Render Dashboard):
+#    Backend: JWT_SECRET (min 32 chars, generate: openssl rand -base64 32)
+#    Frontend: BACKEND_URL, VITE_API_BASE_URL
+#    ML: PYTHONUNBUFFERED=1, PORT=8000
